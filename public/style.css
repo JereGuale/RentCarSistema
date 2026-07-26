@@ -1048,10 +1048,10 @@ body.light-mode .ck-row {
   margin: 0 auto 6px;
 }
 
-/* RESPONSIVE LAYOUT */
+/* ======= MOBILE & RESPONSIVE LAYOUT (UPGRADED) ======= */
 @media (max-width: 992px) {
   .sidebar {
-    width: 72px;
+    width: 76px;
     padding: 24px 8px;
   }
   .sidebar-logo, .logo-tag, .sidebar-footer, .nav-section, .nav-btn span, #theme-text {
@@ -1073,33 +1073,119 @@ body.light-mode .ck-row {
   .layout {
     flex-direction: column;
   }
+  
   .sidebar {
     width: 100%;
     height: auto;
     position: relative;
     border-right: none;
     border-bottom: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
+  
+  .sidebar-logo {
+    display: flex !important;
+    justify-content: center;
+    margin-bottom: 4px;
+  }
+  
+  .logo-tag {
+    display: inline-block !important;
+  }
+  
   .sidebar-nav {
-    flex-direction: row;
-    justify-content: space-around;
+    display: flex;
+    flex-direction: column;
     gap: 8px;
     margin-top: 0;
   }
+  
+  .nav-section {
+    display: block !important;
+    font-size: 9px;
+    margin: 8px 0 4px;
+    text-align: center;
+  }
+  
+  .nav-btn-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  
   .nav-btn {
-    width: auto;
-    padding: 8px 12px;
+    width: 100%;
+    padding: 10px 6px;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    text-align: center;
+    border-radius: var(--radius-md);
   }
+  
+  .nav-btn span {
+    display: inline-block !important;
+  }
+  
+  .nav-btn.active {
+    border-left: none;
+    border-bottom: 2px solid var(--accent);
+    border-radius: var(--radius-md);
+  }
+  
+  .theme-switch-container {
+    border-top: none;
+    padding: 0;
+    margin: 8px 0 0;
+  }
+  
   .main {
-    padding: 24px;
+    padding: 16px;
   }
+  
   .stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    gap: 12px;
   }
-  .grid-2, .grid-3 {
-    grid-template-columns: 1fr;
+  
+  /* Form grids collapse */
+  .grid-2, .grid-3, .form-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
   }
+  
+  .dev-box {
+    grid-column: span 1 !important;
+  }
+  
+  .form-group {
+    grid-column: span 1 !important;
+  }
+  
+  /* Double column dashboard grid collapses */
+  div[style*="display:grid; grid-template-columns: 1fr 1fr;"],
+  div[style*="display:grid;grid-template-columns:1.20fr 0.80fr;"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Checklist grid collapses */
   .ck-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Damage selector options */
+  .damage-selector-wrap {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  /* Modal */
+  .modal {
+    width: 95% !important;
+    padding: 18px !important;
+    margin: 10px;
   }
 }
