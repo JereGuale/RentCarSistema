@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAST CAR — Premium Car Rental System</title>
+  
+  <!-- Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- PDF Libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon-wrap">
+          <i data-lucide="zap" class="logo-icon"></i>
+        </div>
+        <div class="logo-text-wrap">
+          <span class="logo-tag">Manta · Ecuador</span>
+          <div class="logo-name">FAST<span>CAR</span></div>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section">Panel</div>
+        <div class="sidebar-nav-group">
+          <button class="nav-btn active" onclick="goPage('dashboard')" id="nb-dashboard">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+          </button>
+          <button class="nav-btn" onclick="goPage('contratos')" id="nb-contratos">
+            <i data-lucide="file-text"></i>
+            <span>Nuevo Contrato</span>
+          </button>
+        </div>
+        
+        <div class="nav-section">Registros</div>
+        <div class="sidebar-nav-group">
+          <button class="nav-btn" onclick="goPage('clientes')" id="nb-clientes">
+            <i data-lucide="users"></i>
+            <span>Clientes</span>
+          </button>
+          <button class="nav-btn" onclick="goPage('vehiculos')" id="nb-vehiculos">
+            <i data-lucide="car"></i>
+            <span>Vehículos</span>
+          </button>
+          <button class="nav-btn" onclick="goPage('arrendadores')" id="nb-arrendadores">
+            <i data-lucide="building"></i>
+            <span>Arrendadores</span>
+          </button>
+        </div>
+      </nav>
+      
+      <!-- Theme Switcher -->
+      <div class="theme-switch-container">
+        <button class="theme-btn" id="theme-toggle-btn" onclick="toggleTheme()">
+          <i data-lucide="sun" id="theme-icon"></i>
+          <span id="theme-text">Modo Claro</span>
+        </button>
+      </div>
+      
+      <div class="sidebar-footer">
+        RIMPE · RUC 1350799050001
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="main-content"></main>
+  </div>
+
+  <!-- PDF CONTRACT TEMPLATE (Hidden, rendered dynamically) -->
+  <div id="contract-pdf-template"></div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>

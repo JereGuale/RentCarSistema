@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAST CAR – Sistema de Arrendamiento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ======= TOKENS ======= */
+:root {
+  --red:    #C0392B;
+  --red2:   #E74C3C;
+  --dark:   #111827;
+  --dark2:  #1f2937;
+  --mid:    #374151;
+  --gold:   #d97706;
+  --white:  #ffffff;
+  --off:    #f9fafb;
+  --border: #e5e7eb;
+  --muted:  #6b7280;
+  --green:  #059669;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:#f3f4f6;color:var(--dark);min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ======= SIDEBAR ======= */
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:240px;background:var(--dark);flex-shrink:0;display:flex;flex-direction:column;padding:0;position:sticky;top:0;height:100vh;}
+.sidebar-logo{padding:32px 24px 24px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.logo-tag{font-size:10px;letter-spacing:0.18em;color:rgba(255,255,255,0.45);font-weight:500;text-transform:uppercase;display:block;margin-bottom:8px;}
+.logo-name{font-size:1.65rem;font-weight:700;color:var(--white);line-height:1;letter-spacing:-0.04em;}
+.logo-name em{font-style:normal;font-weight:400;color:rgba(255,255,255,0.55);margin-left:0.2em;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;letter-spacing:0.06em;}
+.sidebar-nav{flex:1;padding:16px 12px;}
+.nav-section{font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.35);text-transform:uppercase;padding:12px 8px 6px;font-weight:700;}
+.nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:none;background:transparent;color:rgba(255,255,255,0.65);cursor:pointer;border-radius:8px;font-size:13.5px;font-weight:500;text-align:left;margin-bottom:3px;transition:all .2s;}
+.nav-btn:hover{background:rgba(255,255,255,0.1);color:var(--white);}
+.nav-btn.active{background:var(--red);color:var(--white);font-weight:700;}
+.nav-btn svg{width:17px;height:17px;flex-shrink:0;}
+.sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,0.1);font-size:11px;color:rgba(255,255,255,0.35);text-align:center;}
+
+/* ======= MAIN ======= */
+.main{flex:1;padding:28px;overflow:auto;}
+.page-header{margin-bottom:24px;}
+.page-title{font-size:1.375rem;font-weight:700;color:var(--dark);letter-spacing:-0.03em;}
+.page-sub{font-size:0.8125rem;color:var(--muted);margin-top:4px;}
+
+/* ======= CARDS ======= */
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px;}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.card-title{font-size:16px;font-weight:700;color:var(--dark);}
+
+/* ======= STAT CARDS ======= */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border-left:4px solid var(--red);}
+.stat:nth-child(2){border-color:var(--gold);}
+.stat:nth-child(3){border-color:var(--green);}
+.stat:nth-child(4){border-color:var(--mid);}
+.stat-num{font-size:32px;font-weight:900;color:var(--dark);}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ======= FORM ======= */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.form-group label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:14px;color:var(--dark);background:var(--white);transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--red);}
+.form-group textarea{resize:vertical;}
+
+/* ======= BUTTONS ======= */
+.btn{padding:9px 18px;border:none;border-radius:7px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-size:13px;transition:all .2s;}
+.btn-primary{background:var(--red);color:var(--white);}
+.btn-primary:hover{background:var(--red2);}
+.btn-secondary{background:#e9ecef;color:var(--dark);}
+.btn-secondary:hover{background:#dee2e6;}
+.btn-danger{background:#fdecea;color:var(--red);padding:7px 10px;}
+.btn-danger:hover{background:#fbd5d2;}
+.btn-success{background:var(--green);color:var(--white);}
+.btn-lg{padding:13px 24px;font-size:15px;border-radius:9px;}
+.btn-block{width:100%;justify-content:center;}
+
+/* ======= LIST ITEMS ======= */
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);}
+.list-item:last-child{border:none;padding-bottom:0;}
+.item-name{font-weight:700;font-size:14px;color:var(--dark);}
+.item-sub{font-size:12px;color:var(--muted);margin-top:3px;}
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-active{background:#d4edda;color:#155724;}
+.badge-placa{background:#e8f4f8;color:var(--mid);}
+
+/* ======= MODAL ======= */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:999;}
+.modal{background:var(--white);border-radius:14px;padding:28px;width:92%;max-width:660px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--border);color:var(--dark);}
+
+/* ======= CHECKLIST ======= */
+.ck-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:14px;}
+.ck-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:var(--off);border-radius:5px;gap:6px;}
+.ck-row span{font-size:12px;color:var(--dark);flex:1;min-width:0;}
+.ck-row select{padding:3px 4px;font-size:11px;border:1px solid var(--border);border-radius:4px;flex-shrink:0;min-width:68px;appearance:auto;-webkit-appearance:auto;}
+
+/* ======= DEVOLUCIÓN BOX ======= */
+.dev-box{background:linear-gradient(135deg,#fff9e6,#fffdf5);border:2px solid var(--gold);border-radius:9px;padding:14px;margin-bottom:14px;}
+.dev-box label{color:#b7791f !important;}
+
+/* ======= HISTORIAL ======= */
+.contrato-row{background:var(--off);border-radius:8px;padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.contrato-row:hover{background:#e9ecef;}
+
+/* ======= EMPTY STATE ======= */
+.empty{text-align:center;padding:40px;color:var(--muted);}
+.empty svg{opacity:.3;margin-bottom:10px;}
+.empty p{font-size:14px;}
+
+/* ======= TOAST ======= */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--dark);color:var(--white);padding:12px 20px;border-radius:9px;font-size:13px;font-weight:600;z-index:9999;box-shadow:var(--shadow);transition:opacity .4s;border-left:4px solid var(--green);}
+
+/* ======= PRINT AREA ======= */
+#print-area{display:none;}
+
+@media(max-width:900px){
+  .sidebar{width:200px;}
+  .stats{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:680px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;}
+  .sidebar-nav{display:flex;flex-wrap:wrap;gap:6px;padding:10px;}
+  .nav-section{display:none;}
+  .sidebar-footer{display:none;}
+  .main{padding:16px;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .grid-2{grid-template-columns:1fr;}
+}
+
+/* ======= PDF CONTRACT STYLES ======= */
+#contract-pdf-template{
+  display:none;
+  font-family:'Times New Roman',Times,serif;
+  font-size:12px;
+  line-height:1.45;
+  color:#000;
+  background:#fff;
+  padding:20px;
+  width:794px;
+}
+#contract-pdf-template.show{display:block;}
+.pdf-logo-bar{display:flex;align-items:center;gap:16px;border-bottom:1.5px solid #111827;padding-bottom:12px;margin-bottom:14px;}
+.pdf-logo-text{display:flex;flex-direction:column;flex-shrink:0;}
+.pdf-logo-text .ln1{font-size:20px;font-weight:700;letter-spacing:-0.04em;color:#111827;line-height:1;}
+.pdf-logo-text .ln1 span{font-weight:400;color:#6b7280;}
+.pdf-logo-text .ln2{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:#9ca3af;margin-top:3px;}
+.pdf-title{font-size:14px;font-weight:600;text-align:center;flex:1;text-transform:uppercase;letter-spacing:0.06em;color:#374151;}
+.veh-thumb{width:72px;height:48px;object-fit:cover;border-radius:7px;border:1px solid var(--border);background:var(--off);flex-shrink:0;}
+.veh-row{display:flex;align-items:center;gap:14px;}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.94);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;gap:14px;}
+.loading-overlay .spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--dark);border-radius:50%;animation:spin .7s linear infinite;}
+.loading-overlay p{font-size:14px;color:var(--muted);font-weight:500;text-align:center;max-width:300px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pdf-section{margin-bottom:8px;text-align:justify;}
+.pdf-bold{font-weight:700;}
+.pdf-indent{margin-left:18px;}
+.pdf-table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+.pdf-table th,.pdf-table td{border:1px solid #000;padding:4px 6px;font-size:11px;vertical-align:top;}
+.pdf-table .th{background:#e8e8e8;font-weight:700;text-align:center;}
+.pdf-car-imgs{display:flex;gap:10px;justify-content:center;margin:10px 0;}
+.pdf-car-imgs img{max-height:160px;max-width:46%;object-fit:contain;border:1px solid #ccc;border-radius:4px;}
+.pdf-sig-table{width:100%;margin-top:40px;}
+.pdf-sig-table td{width:50%;text-align:center;padding-top:8px;vertical-align:bottom;}
+.pdf-sig-line{border-top:1px solid #000;width:75%;margin:0 auto 4px;}
+.pdf-fuel-row{display:flex;gap:30px;align-items:center;font-size:11px;margin:8px 0;}
+.pdf-fuel-gauge{display:flex;align-items:center;gap:6px;}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-tag">Arrendamiento vehicular</span>
+      <div class="logo-name">FAST<em>CAR</em></div>
+      <div class="logo-sub">Manta · Ecuador</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <button class="nav-btn active" onclick="goPage('dashboard')" id="nb-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-btn" onclick="goPage('contratos')" id="nb-contratos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Contratos
+      </button>
+      <div class="nav-section">Registros</div>
+      <button class="nav-btn" onclick="goPage('clientes')" id="nb-clientes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Clientes
+      </button>
+      <button class="nav-btn" onclick="goPage('vehiculos')" id="nb-vehiculos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v9a2 2 0 0 1-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+        Vehículos
+      </button>
+      <button class="nav-btn" onclick="goPage('arrendadores')" id="nb-arrendadores">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Arrendadores
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      Manta, Ecuador · RIMPE<br>RUC 1350799050001
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main-content"></main>
+</div>
+
+<!-- PDF CONTRACT TEMPLATE (hidden, used for PDF generation) -->
+<div id="contract-pdf-template"></div>
+
+<script>
+// ==================== STATE ====================
+const CHECKLIST_ITEMS = [
+  'Matrícula','Revisión vehicular','Nivel de aceite del motor','Nivel de refrigerante',
+  'Nivel de electrolitos batería','Neumáticos (labrado)','Neumáticos (presión)','Encendido',
+  'Tablero de a bordo','Aire acondicionado','Luces','Direccionales','Espejos',
+  'Asientos, tapizado y alfombras','Condiciones interiores generales','Encendedor eléctrico',
+  'Radio','Botiquín','Rueda de repuesto','Caja de herramientas','Condiciones exteriores generales'
+];
+
+function sl(k,fb){try{const d=localStorage.getItem(k);return d?JSON.parse(d):fb;}catch(e){return fb;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+let S = {
+  page: 'dashboard',
+  arrendadores: sl('fc_arrendadores', [
+    {id:'arr1',nombre:'GUALE SANTANA BYRON JOSHUE',cedula:'135079905-0',ruc:'1350799050001',direccion:'Barrio Costa Azul, Manta',celular:'0998799579',email:'g.byron@hotmail.com'}
+  ]),
+  vehiculos: sl('fc_vehiculos', [
+    {id:'v1',placa:'GSR6847',marca:'CHEVROLET',modelo:'SPARK GT',año:'2016',color:'CELESTE',motor:'1.2L DOHC',chasis:'',img1:'',img2:''},
+    {id:'v2',placa:'PDR4115',marca:'DONGFENG',modelo:'RICH 6',año:'2022',color:'ROJO',motor:'',chasis:'',img1:'',img2:''},
+    {id:'v3',placa:'MBG1467',marca:'CHERY',modelo:'TIGGO 2 PRO',año:'2023',color:'AZUL',motor:'',chasis:'',img1:'',img2:''}
+  ]),
+  clientes: sl('fc_clientes', [
+    {id:'c1',nombres:'RODRÍGUEZ CALLE ERICK ISAAC',cedula:'1310768641',telefono:'+593 97 886 1195',ciudad:'MANTA',refLaboral:'',telLaboral:'',refPersonal:'',telPersonal:''},
+    {id:'c2',nombres:'ZAMBRANO GARCES GAILER GILSON',cedula:'1726470790',telefono:'0968656392',ciudad:'MANTA',refLaboral:'',telLaboral:'',refPersonal:'',telPersonal:''}
+  ]),
+  contratos: sl('fc_contratos', []),
+  imageCache: sl('fc_image_cache', {})
+};
+
+function save(k){
+  if(k==='imageCache') sv('fc_image_cache', S.imageCache);
+  else sv('fc_'+k, S[k]);
+}
+
+// ==================== IMÁGENES IA ====================
+const COLOR_MAP = {
+  CELESTE:'light sky blue',AZUL:'blue',ROJO:'red',NEGRO:'black',BLANCO:'white',
+  GRIS:'gray',PLATA:'silver',VERDE:'green',AMARILLO:'yellow',NARANJA:'orange',
+  CAFE:'brown',VINO:'burgundy',DORADO:'gold',BEIGE:'beige'
+};
+
+function vehImageKey(v, angle){
+  return `${(v.marca||'').toUpperCase()}_${(v.modelo||'').toUpperCase()}_${v.año||''}_${(v.color||'').toUpperCase()}_${angle}`;
+}
+
+function colorToEnglish(color){
+  const c = (color||'').toUpperCase().trim();
+  return COLOR_MAP[c] || c.toLowerCase();
+}
+
+function detectVehicleType(v){
+  const modelo = (v.modelo || '').toUpperCase();
+  const marca  = (v.marca  || '').toUpperCase();
+
+  // Camionetas / Pickup trucks
+  const pickups = [
+    'RICH 6','RICH6','RICH 5','RICH5','RICH 3','RICH3',
+    'D-MAX','DMAX','D MAX','RANGER','HILUX','FRONTIER',
+    'AMAROK','NAVARA','L200','TRITON','COLORADO','SILVERADO',
+    'F-150','F150','TUNDRA','RAM 1500','RODEO','BT-50','BT50',
+    'MIGHTY-X','MIGHTYX','POER','CANNON','WOLF'
+  ];
+  // SUVs / Crossovers
+  const suvs = [
+    'TIGGO 2','TIGGO2','TIGGO 3','TIGGO3','TIGGO 4','TIGGO4',
+    'TIGGO 5','TIGGO5','TIGGO 7','TIGGO7','TIGGO 8','TIGGO8',
+    'TIGGO 9','TIGGO9','TIGGO 2 PRO','TIGGO 4 PRO','TIGGO 8 PRO',
+    'OMODA','ARRIZO','HAVAL H2','HAVAL H6','HAVAL','JOLION',
+    'DUSTER','CAPTUR','KADJAR','KWID','TERRANO',
+    'RAV4','CR-V','CRV','HR-V','HRV','PILOT','PASSPORT','PILOT',
+    'TUCSON','SANTA FE','KONA','VENUE','CRETA','IX35',
+    'FORESTER','OUTBACK','XV','CROSSTREK',
+    'ECOSPORT','ESCAPE','EDGE','EXPLORER','BRONCO',
+    'TRAILBLAZER','EQUINOX','TRAVERSE','BLAZER',
+    'SPORTAGE','SORENTO','SELTOS','STONIC','TELLURIDE',
+    'C-HR','CHR','RAV','PRADO','4RUNNER',
+    'TERRACROSS','GRAND VITARA','VITARA',
+    'ATOS','MG ZS','ZS','MG HS','HS','MG RX5',
+    'CHANGAN CS35','CS35','CHANGAN CS55','CS55','CHANGAN CS75','CS75',
+    'GEELY COOLRAY','COOLRAY','EMGRAND X7',
+    'JUKE','QASHQAI','KICKS','PATHFINDER','MURANO','ROGUE',
+    'S500','AX7','AX5','AX4',
+    'T-ROC','TROC','TIGUAN','TOUAREG',
+    'RX','NX','UX','GX','LX',
+    'X1','X3','X5','X6','X7',
+    'GLC','GLE','GLA','GLB',
+    'Q3','Q5','Q7',
+    'GREAT WALL POER','HAVAL H6','WEY'
+  ];
+  // Minivans / Vans
+  const vans = [
+    'SIENNA','ODYSSEY','CARNIVAL','SEDONA','VOYAGER',
+    'TRANSPORTER','CARAVELLE','MULTIVAN',
+    'TRANSIT','EXPRESS','HIACE','H-1','H1','STAREX'
+  ];
+  // Hatchbacks
+  const hatches = [
+    'SPARK','AVEO','SAIL','ONIX','HB20',
+    'SWIFT','ALTO','BALENO','CELERIO','IGNIS',
+    'FIESTA','FOCUS','POLO','GOLF','GETZ',
+    'YARIS HB','MARCH','TIIDA','VERSA NOTE',
+    'i10','i20','208','308','205','206','207',
+    'A1','A2','A3 SPORTBACK','UP'
+  ];
+
+  for(const p of pickups){
+    if(modelo.includes(p)) return 'pickup truck';
+  }
+  for(const s of suvs){
+    if(modelo.includes(s)) return 'SUV crossover';
+  }
+  for(const va of vans){
+    if(modelo.includes(va)) return 'minivan';
+  }
+  for(const h of hatches){
+    if(modelo.includes(h)) return 'hatchback';
+  }
+  // Fallback genérico por marca conocida como pickup
+  if(['DONGFENG','FOTON','JMC','JAC'].includes(marca) && modelo.includes('RICH')){
+    return 'pickup truck';
+  }
+  return 'sedan';
+}
+
+function buildImagePrompt(v, angle){
+  const year = v.año || '2020';
+  const brand = v.marca || 'car';
+  const model = v.modelo || '';
+  const color = colorToEnglish(v.color);
+  const bodyType = detectVehicleType(v);
+  const view = angle === 'rear'
+    ? 'rear three quarter view showing back and tail lights'
+    : 'three quarter front view showing front grille and side profile';
+  return `Professional automotive studio photograph, ${year} ${brand} ${model} ${bodyType}, ${color} paint color, ${view}, clean white studio background, realistic high quality car photo, sharp details, no people, no text, no watermark`;
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+function showLoading(msg){
+  document.getElementById('loading-overlay')?.remove();
+  const el = document.createElement('div');
+  el.id = 'loading-overlay';
+  el.className = 'loading-overlay';
+  el.innerHTML = `<div class="spinner"></div><p>${msg}</p>`;
+  document.body.appendChild(el);
+}
+
+function hideLoading(){
+  document.getElementById('loading-overlay')?.remove();
+}
+
+async function fetchVehicleImage(v, angle='front', forceRefresh=false){
+  const key = vehImageKey(v, angle);
+  if(!forceRefresh && S.imageCache[key]) return S.imageCache[key];
+  const prompt = encodeURIComponent(buildImagePrompt(v, angle));
+  const seed = key.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const url = `https://image.pollinations.ai/prompt/${prompt}?width=800&height=450&nologo=true&seed=${seed}`;
+  const resp = await fetch(url);
+  if(!resp.ok) throw new Error('Error al generar imagen');
+  const dataUrl = await blobToDataUrl(await resp.blob());
+  try{
+    S.imageCache[key] = dataUrl;
+    save('imageCache');
+  }catch(e){}
+  return dataUrl;
+}
+
+async function fetchVehicleImages(v, forceRefresh=false){
+  const img1 = v.img1 || await fetchVehicleImage(v, 'front', forceRefresh);
+  const img2 = v.img2 || await fetchVehicleImage(v, 'rear', forceRefresh);
+  return { img1, img2 };
+}
+
+function pdfLogoBar(subtitle=''){
+  return `<div class="pdf-logo-bar">
+    <div class="pdf-logo-text"><div class="ln1">FAST<span>CAR</span></div><div class="ln2">Rentadora · Manta</div></div>
+    <div class="pdf-title">${subtitle || 'Contrato de Arrendamiento de Vehículo Automotor'}</div>
+  </div>`;
+}
+
+function waitForImages(container){
+  const imgs = [...container.querySelectorAll('img')];
+  return Promise.all(imgs.map(img=>{
+    if(img.complete && img.naturalWidth) return Promise.resolve();
+    return new Promise(res=>{
+      img.onload = img.onerror = ()=>res();
+      setTimeout(res, 8000);
+    });
+  }));
+}
+
+// ==================== ROUTING ====================
+function goPage(p){
+  S.page = p;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const nb = document.getElementById('nb-'+p);
+  if(nb) nb.classList.add('active');
+  renderPage();
+}
+
+function renderPage(){
+  const c = document.getElementById('main-content');
+  const pages = {dashboard:renderDashboard, contratos:renderContratos, clientes:renderClientes, vehiculos:renderVehiculos, arrendadores:renderArrendadores};
+  c.innerHTML = (pages[S.page]||renderDashboard)();
+  if(S.page==='contratos') calcDev();
+  if(S.page==='vehiculos') loadVehicleThumbnails();
+  if(S.page==='dashboard') loadDashboardThumbnails();
+}
+
+async function loadVehicleThumbnails(){
+  for(const v of S.vehiculos){
+    const img = document.getElementById('thumb_'+v.id);
+    if(!img) continue;
+    try{
+      img.src = await fetchVehicleImage(v, 'front');
+    }catch(e){}
+  }
+}
+
+async function loadDashboardThumbnails(){
+  for(const v of S.vehiculos){
+    const img = document.getElementById('dash_thumb_'+v.id);
+    if(!img) continue;
+    try{
+      img.src = await fetchVehicleImage(v, 'front');
+    }catch(e){}
+  }
+}
+
+// ==================== TOAST ====================
+function toast(msg, ok=true){
+  const t=document.createElement('div');
+  t.className='toast';
+  t.style.borderColor=ok?'#27ae60':'#e74c3c';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),400);},2800);
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard(){
+  const totalIngresos = S.contratos.reduce((s,c)=>s+(parseFloat(c.precio||0)*parseInt(c.dias||1)),0);
+  return `
+  <div class="page-header">
+    <div class="page-title">📊 Dashboard</div>
+    <div class="page-sub">Resumen general del sistema</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">${S.contratos.length}</div><div class="stat-label">Contratos</div></div>
+    <div class="stat"><div class="stat-num">${S.clientes.length}</div><div class="stat-label">Clientes</div></div>
+    <div class="stat"><div class="stat-num">${S.vehiculos.length}</div><div class="stat-label">Vehículos</div></div>
+    <div class="stat"><div class="stat-num">$${totalIngresos.toFixed(0)}</div><div class="stat-label">Ingresos Est.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🕐 Últimos Contratos</div></div>
+    ${S.contratos.length===0?`<div class="empty"><p>Aún no hay contratos registrados.<br>Ve a <strong>Contratos</strong> para crear el primero.</p></div>`:
+    S.contratos.slice(0,6).map(c=>`
+      <div class="list-item">
+        <div>
+          <div class="item-name">${c.cliente}</div>
+          <div class="item-sub">${c.marca} ${c.modelo} · Placa: ${c.placa} · ${c.fecha}</div>
+        </div>
+        <div><span class="badge badge-active">$${parseFloat(c.precio||0)*parseInt(c.dias||1)}</span></div>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title">🚗 Flota</div></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+      ${S.vehiculos.map(v=>`
+        <div style="background:var(--off);border-radius:8px;padding:14px;border:1px solid var(--border);">
+          <img id="dash_thumb_${v.id}" class="veh-thumb" style="width:100%;height:90px;margin-bottom:10px;" alt="${v.marca} ${v.modelo}" src="data:image/svg+xml,${encodeURIComponent('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'90\'><rect fill=\'#f3f4f6\' width=\'200\' height=\'90\'/></svg>')}">
+          <div style="font-weight:600;font-size:14px;">${v.marca} ${v.modelo}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;">${v.color} · ${v.año}</div>
+          <span class="badge badge-placa" style="margin-top:6px;">${v.placa}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ==================== CONTRATOS ====================
+function renderContratos(){
+  const dOpts = S.arrendadores.map(d=>`<option value="${d.id}">${d.nombre}</option>`).join('');
+  const cOpts = `<option value="">— Seleccione Cliente —</option>`+S.clientes.map(c=>`<option value="${c.id}">${c.nombres} · ${c.cedula}</option>`).join('');
+  const vOpts = `<option value="">— Seleccione Vehículo —</option>`+S.vehiculos.map(v=>`<option value="${v.id}">${v.marca} ${v.modelo} · ${v.placa}</option>`).join('');
+  const today = new Date().toISOString().split('T')[0];
+  const ckHtml = CHECKLIST_ITEMS.map(it=>`
+    <div class="ck-row">
+      <span>${it}</span>
+      <select class="ck-item" data-name="${it}">
+        <option value="OK">✓ OK</option>
+        <option value="NO">✗ NO</option>
+        <option value="N/A">N/A</option>
+      </select>
+    </div>`).join('');
+
+  return `
+  <div class="page-header">
+    <div class="page-title">📄 Contratos</div>
+    <div class="page-sub">Genera contratos de arrendamiento con Check-List</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:20px;">
+    <div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px;">Nuevo Contrato</div>
+        <div class="form-group"><label>Arrendador (Dueño del vehículo)</label><select id="c_due">${dOpts}</select></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Cliente (Arrendatario)</label><select id="c_cli">${cOpts}</select></div>
+          <div class="form-group"><label>Vehículo</label><select id="c_veh">${vOpts}</select></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Precio / Día ($)</label><input type="number" id="c_precio" value="80" min="1"></div>
+          <div class="form-group"><label>Días de Alquiler</label><input type="number" id="c_dias" value="2" min="1" oninput="calcDev()"></div>
+          <div class="form-group"><label>Km Salida</label><input type="number" id="c_km" placeholder="Km"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Fecha Salida</label><input type="date" id="c_fecha" value="${today}" onchange="calcDev()"></div>
+          <div class="form-group"><label>Hora Salida</label><input type="time" id="c_hora" value="08:00" onchange="calcDev()"></div>
+        </div>
+        <div class="dev-box">
+          <div class="grid-2">
+            <div class="form-group" style="margin:0"><label>📅 Fecha Devolución Est.</label><input type="date" id="c_fecha_dev" readonly></div>
+            <div class="form-group" style="margin:0"><label>⏰ Hora Devolución Est.</label><input type="time" id="c_hora_dev" readonly></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Nivel Combustible Salida</label>
+            <select id="c_fuel">
+              <option value="E">E – Vacío</option>
+              <option value="1/4">1/4</option>
+              <option value="1/2" selected>1/2</option>
+              <option value="3/4">3/4</option>
+              <option value="F">F – Lleno</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Golpes / Rayones</label><input id="c_golpes" placeholder="Ninguno observado"></div>
+        </div>
+        <div class="form-group"><label>Observaciones adicionales</label><textarea id="c_obs" rows="2" placeholder="Opcional..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">Check-List Vehicular</div>
+        <div class="ck-grid">${ckHtml}</div>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-primary btn-lg btn-block" onclick="generarPDF()" id="btn-pdf">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Generar Contrato PDF
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Historial</div></div>
+        ${S.contratos.length===0?`<div class="empty"><p>Sin contratos aún.</p></div>`:
+        S.contratos.map(c=>`
+          <div class="contrato-row">
+            <div>
+              <div class="item-name">${c.cliente}</div>
+              <div class="item-sub">${c.marca||''} ${c.modelo||''} · ${c.placa} · ${c.fecha}</div>
+              <div class="item-sub">$${c.precio}/día × ${c.dias||'?'} días = <strong>$${parseFloat(c.precio||0)*parseInt(c.dias||1)}</strong></div>
+            </div>
+            <button class="btn btn-danger" onclick="delContrato('${c.id}')">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.calcDev = function(){
+  const dias = parseInt(document.getElementById('c_dias')?.value)||0;
+  const fechaSal = document.getElementById('c_fecha')?.value;
+  const horaSal = document.getElementById('c_hora')?.value||'08:00';
+  if(fechaSal&&dias>0){
+    const [y,m,d]=fechaSal.split('-');
+    const f=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    f.setDate(f.getDate()+dias);
+    document.getElementById('c_fecha_dev').value=`${f.getFullYear()}-${String(f.getMonth()+1).padStart(2,'0')}-${String(f.getDate()).padStart(2,'0')}`;
+  }
+  if(document.getElementById('c_hora_dev'))
+    document.getElementById('c_hora_dev').value=horaSal;
+};
+
+window.delContrato = function(id){
+  if(confirm('¿Eliminar este contrato del historial?')){
+    S.contratos=S.contratos.filter(x=>x.id!==id);save('contratos');renderPage();
+  }
+};
+
+// ==================== CLIENTES ====================
+function renderClientes(){
+  const list = S.clientes.map(c=>`
+    <div class="list-item">
+      <div>
+        <div class="item-name">${c.nombres}</div>
+        <div class="item-sub">C.I. ${c.cedula} · ${c.telefono} · ${c.ciudad}</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="editCliente('${c.id}')">✏️</button>
+        <button class="btn btn-danger" onclick="delCliente('${c.id}')">✕</button>
+      </div>
+    </div>`).join('');
+  return `
+  <div class="page-header"><div class="page-title">👥 Clientes</div><div class="page-sub">Arrendatarios registrados</div></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Listado (${S.clientes.length})</div>
+      <button class="btn btn-primary" onclick="modalCliente()">+ Nuevo Cliente</button>
+    </div>
+    ${S.clientes.length===0?`<div class="empty"><p>No hay clientes. Agrega el primero.</p></div>`:list}
+  </div>`;
+}
+
+window.modalCliente = function(id){
+  const ex = id ? S.clientes.find(x=>x.id===id) : null;
+  const v = ex||{nombres:'',cedula:'',telefono:'',ciudad:'Manta',refLaboral:'',telLaboral:'',refPersonal:'',telPersonal:''};
+  const html=`<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-title">${ex?'Editar':'Registrar'} Cliente</div>
+      <div class="form-group"><label>Nombres Completos (Apellidos Nombres)</label><input id="f_nom" value="${v.nombres}" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Cédula</label><input id="f_ced" value="${v.cedula}"></div>
+        <div class="form-group"><label>Celular</label><input id="f_tel" value="${v.telefono}"></div>
+      </div>
+      <div class="form-group"><label>Ciudad</label><input id="f_ciu" value="${v.ciudad}" oninput="this.value=this.value.toUpperCase()"></div>
+      <hr style="margin:12px 0;border-color:var(--border);">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Referencias (opcional)</div>
+      <div class="grid-2">
+        <div class="form-group"><label>Referencia Laboral</label><input id="f_rl" value="${v.refLaboral}"></div>
+        <div class="form-group"><label>Teléfono Laboral</label><input id="f_tl" value="${v.telLaboral}"></div>
+        <div class="form-group"><label>Referencia Personal</label><input id="f_rp" value="${v.refPersonal}"></div>
+        <div class="form-group"><label>Teléfono Personal</label><input id="f_tp" value="${v.telPersonal}"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarCliente('${id||''}')">Guardar</button>
+      </div>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+};
+
+window.editCliente = function(id){modalCliente(id);};
+
+window.guardarCliente = function(id){
+  const nom=document.getElementById('f_nom').value.toUpperCase();
+  const ced=document.getElementById('f_ced').value;
+  if(!nom||!ced){alert('Faltan nombres o cédula.');return;}
+  const obj={id:id||'c'+Date.now(),nombres:nom,cedula:ced,telefono:document.getElementById('f_tel').value,ciudad:document.getElementById('f_ciu').value.toUpperCase(),refLaboral:document.getElementById('f_rl').value,telLaboral:document.getElementById('f_tl').value,refPersonal:document.getElementById('f_rp').value,telPersonal:document.getElementById('f_tp').value};
+  if(id){S.clientes=S.clientes.map(x=>x.id===id?obj:x);}else{S.clientes.push(obj);}
+  save('clientes');closeModal();renderPage();toast('Cliente guardado.');
+};
+
+window.delCliente = function(id){
+  if(confirm('¿Eliminar este cliente?')){S.clientes=S.clientes.filter(x=>x.id!==id);save('clientes');renderPage();}
+};
+
+// ==================== VEHÍCULOS ====================
+function renderVehiculos(){
+  const placeholder = encodeURIComponent('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'72\' height=\'48\'><rect fill=\'#f3f4f6\' width=\'72\' height=\'48\'/></svg>');
+  const list = S.vehiculos.map(v=>`
+    <div class="list-item">
+      <div class="veh-row">
+        <img class="veh-thumb" id="thumb_${v.id}" alt="${v.marca} ${v.modelo}" src="data:image/svg+xml,${placeholder}">
+        <div>
+          <div class="item-name">${v.marca} ${v.modelo} <span class="badge badge-placa">${v.placa}</span></div>
+          <div class="item-sub">${v.color} · ${v.año} · Motor: ${v.motor||'N/A'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" title="Regenerar imagen IA" onclick="regenerarImagen('${v.id}')">📷</button>
+        <button class="btn btn-secondary" onclick="editVehiculo('${v.id}')">✏️</button>
+        <button class="btn btn-danger" onclick="delVehiculo('${v.id}')">✕</button>
+      </div>
+    </div>`).join('');
+  return `
+  <div class="page-header"><div class="page-title">🚗 Vehículos</div><div class="page-sub">Flota disponible</div></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Flota (${S.vehiculos.length})</div>
+      <button class="btn btn-primary" onclick="modalVehiculo()">+ Nuevo Vehículo</button>
+    </div>
+    ${S.vehiculos.length===0?`<div class="empty"><p>Sin vehículos. Registra tu flota.</p></div>`:list}
+  </div>`;
+}
+
+window.regenerarImagen = async function(id){
+  const v = S.vehiculos.find(x=>x.id===id);
+  if(!v) return;
+  showLoading('Generando imágenes con IA…');
+  try{
+    delete S.imageCache[vehImageKey(v,'front')];
+    delete S.imageCache[vehImageKey(v,'rear')];
+    save('imageCache');
+    await fetchVehicleImages(v, true);
+    hideLoading();
+    toast('Imágenes regeneradas.');
+    renderPage();
+  }catch(e){
+    hideLoading();
+    toast('Error al generar imagen. Verifica tu conexión.', false);
+  }
+};
+
+window.modalVehiculo = function(id){
+  const ex = id ? S.vehiculos.find(x=>x.id===id) : null;
+  const v = ex||{placa:'',marca:'',modelo:'',año:'',color:'',motor:'',chasis:'',img1:'',img2:''};
+  const html=`<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-title">${ex?'Editar':'Registrar'} Vehículo</div>
+      <div class="grid-2">
+        <div class="form-group"><label>Placa</label><input id="vf_placa" value="${v.placa}" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="form-group"><label>Marca</label><input id="vf_marca" value="${v.marca}" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="form-group"><label>Modelo</label><input id="vf_modelo" value="${v.modelo}" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="form-group"><label>Año</label><input type="number" id="vf_año" value="${v.año}" min="1990" max="2030"></div>
+        <div class="form-group"><label>Color</label><input id="vf_color" value="${v.color}" oninput="this.value=this.value.toUpperCase()"></div>
+        <div class="form-group"><label>Motor</label><input id="vf_motor" value="${v.motor}"></div>
+      </div>
+      <div class="form-group"><label>Chasis (opcional)</label><input id="vf_chasis" value="${v.chasis}"></div>
+      <div style="background:var(--off);border-radius:8px;padding:14px;margin-top:6px;border:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;">Imágenes del vehículo</div>
+        <p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">Se generan automáticamente con IA según marca, modelo, año y color al guardar o al crear el PDF. Opcionalmente puedes pegar URLs propias:</p>
+        <div class="form-group"><label>URL imagen frontal (opcional)</label><input id="vf_img1" value="${v.img1}" placeholder="Dejar vacío para generar con IA"></div>
+        <div class="form-group"><label>URL imagen trasera (opcional)</label><input id="vf_img2" value="${v.img2}" placeholder="Dejar vacío para generar con IA"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarVehiculo('${id||''}')">Guardar</button>
+      </div>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+};
+
+window.editVehiculo = function(id){modalVehiculo(id);};
+
+window.guardarVehiculo = async function(id){
+  const placa=document.getElementById('vf_placa').value.toUpperCase();
+  if(!placa){alert('La placa es requerida.');return;}
+  const old = S.vehiculos.find(x=>x.id===id);
+  const obj={id:id||'v'+Date.now(),placa,marca:document.getElementById('vf_marca').value.toUpperCase(),modelo:document.getElementById('vf_modelo').value.toUpperCase(),año:document.getElementById('vf_año').value,color:document.getElementById('vf_color').value.toUpperCase(),motor:document.getElementById('vf_motor').value,chasis:document.getElementById('vf_chasis').value,img1:document.getElementById('vf_img1').value,img2:document.getElementById('vf_img2').value};
+  if(id){S.vehiculos=S.vehiculos.map(x=>x.id===id?obj:x);}else{S.vehiculos.push(obj);}
+  save('vehiculos');closeModal();renderPage();toast('Vehículo guardado.');
+  if(!obj.img1 && !obj.img2 && (!old || vehImageKey(old,'front')!==vehImageKey(obj,'front'))){
+    showLoading('Generando imagen del vehículo con IA…');
+    try{ await fetchVehicleImages(obj, true); }catch(e){}
+    hideLoading();
+    renderPage();
+  }
+};
+
+window.delVehiculo = function(id){
+  if(confirm('¿Eliminar este vehículo?')){S.vehiculos=S.vehiculos.filter(x=>x.id!==id);save('vehiculos');renderPage();}
+};
+
+// ==================== ARRENDADORES ====================
+function renderArrendadores(){
+  const list = S.arrendadores.map(a=>`
+    <div class="list-item">
+      <div>
+        <div class="item-name">${a.nombre}</div>
+        <div class="item-sub">C.I. ${a.cedula} · RUC: ${a.ruc} · 📱 ${a.celular}</div>
+        <div class="item-sub">📍 ${a.direccion} · ✉️ ${a.email}</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="editArrendador('${a.id}')">✏️</button>
+        <button class="btn btn-danger" onclick="delArrendador('${a.id}')">✕</button>
+      </div>
+    </div>`).join('');
+  return `
+  <div class="page-header"><div class="page-title">🏢 Arrendadores</div><div class="page-sub">Propietarios que ponen sus vehículos en renta</div></div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Arrendadores (${S.arrendadores.length})</div>
+      <button class="btn btn-primary" onclick="modalArrendador()">+ Agregar Arrendador</button>
+    </div>
+    ${S.arrendadores.length===0?`<div class="empty"><p>Ningún arrendador registrado.</p></div>`:list}
+  </div>`;
+}
+
+window.modalArrendador = function(id){
+  const ex = id ? S.arrendadores.find(x=>x.id===id) : null;
+  const v = ex||{nombre:'',cedula:'',ruc:'',direccion:'',celular:'',email:''};
+  const html=`<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-title">${ex?'Editar':'Registrar'} Arrendador</div>
+      <div class="form-group"><label>Nombres Completos (Apellidos Nombres)</label><input id="af_nom" value="${v.nombre}" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Cédula de Identidad</label><input id="af_ced" value="${v.cedula}"></div>
+        <div class="form-group"><label>RUC</label><input id="af_ruc" value="${v.ruc}"></div>
+      </div>
+      <div class="form-group"><label>Dirección (para contratos)</label><input id="af_dir" value="${v.direccion}" placeholder="Barrio, Ciudad"></div>
+      <div class="grid-2">
+        <div class="form-group"><label>Celular / WhatsApp</label><input id="af_cel" value="${v.celular}"></div>
+        <div class="form-group"><label>Correo Electrónico</label><input id="af_email" type="email" value="${v.email}"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarArrendador('${id||''}')">Guardar</button>
+      </div>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+};
+
+window.editArrendador = function(id){modalArrendador(id);};
+
+window.guardarArrendador = function(id){
+  const nom=document.getElementById('af_nom').value.toUpperCase();
+  const ced=document.getElementById('af_ced').value;
+  if(!nom||!ced){alert('Faltan nombres o cédula.');return;}
+  const obj={id:id||'arr'+Date.now(),nombre:nom,cedula:ced,ruc:document.getElementById('af_ruc').value,direccion:document.getElementById('af_dir').value,celular:document.getElementById('af_cel').value,email:document.getElementById('af_email').value};
+  if(id){S.arrendadores=S.arrendadores.map(x=>x.id===id?obj:x);}else{S.arrendadores.push(obj);}
+  save('arrendadores');closeModal();renderPage();toast('Arrendador guardado.');
+};
+
+window.delArrendador = function(id){
+  if(S.arrendadores.length===1){alert('Debe haber al menos un arrendador.');return;}
+  if(confirm('¿Eliminar este arrendador?')){S.arrendadores=S.arrendadores.filter(x=>x.id!==id);save('arrendadores');renderPage();}
+};
+
+function closeModal(){const m=document.getElementById('modal');if(m)m.remove();}
+
+// ==================== PDF GENERATION ====================
+window.generarPDF = async function(){
+  const dId=document.getElementById('c_due')?.value;
+  const cId=document.getElementById('c_cli')?.value;
+  const vId=document.getElementById('c_veh')?.value;
+  if(!dId||!cId||!vId){toast('Selecciona Arrendador, Cliente y Vehículo.',false);return;}
+
+  const arrD=S.arrendadores.find(x=>x.id===dId);
+  const cli=S.clientes.find(x=>x.id===cId);
+  const veh=S.vehiculos.find(x=>x.id===vId);
+  const precio=document.getElementById('c_precio').value||'0';
+  const dias=document.getElementById('c_dias').value||'1';
+  const fecha=document.getElementById('c_fecha').value;
+  const hora=document.getElementById('c_hora').value||'08:00';
+  const fechaDev=document.getElementById('c_fecha_dev').value||fecha;
+  const horaDev=document.getElementById('c_hora_dev').value||hora;
+  const km=document.getElementById('c_km').value||'_______';
+  const fuel=document.getElementById('c_fuel').value;
+  const golpes=document.getElementById('c_golpes').value||'Ninguno observado al momento de la entrega';
+  const obs=document.getElementById('c_obs').value||'';
+
+  // Save to history
+  S.contratos.unshift({id:'ct'+Date.now(),cliente:cli.nombres,placa:veh.placa,marca:veh.marca,modelo:veh.modelo,precio,dias,fecha,dueñoNombre:arrD.nombre});
+  save('contratos');
+
+  const btn=document.getElementById('btn-pdf');
+  btn.disabled=true;
+  btn.textContent='⏳ Generando imágenes IA...';
+  showLoading('Generando imágenes del vehículo con IA…');
+
+  let aiImages = { img1:'', img2:'' };
+  try{
+    aiImages = await fetchVehicleImages(veh);
+  }catch(e){
+    hideLoading();
+    btn.disabled=false;
+    btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Generar Contrato PDF';
+    toast('No se pudieron generar las imágenes. Verifica tu conexión.', false);
+    return;
+  }
+
+  showLoading('Creando documento PDF…');
+  btn.textContent='⏳ Generando PDF...';
+
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const [fy,fm,fd]=fecha.split('-');
+  const fechaLarga=`${parseInt(fd)} días del mes de ${meses[parseInt(fm)-1]} del año ${fy}`;
+
+  let ckRows='';
+  document.querySelectorAll('.ck-item').forEach(el=>{
+    const ok=el.value==='OK'?'✓':'';
+    const no=el.value==='NO'?'✗':'';
+    const na=el.value==='N/A'?'—':'';
+    ckRows+=`<tr><td>${el.dataset.name}</td><td style="text-align:center">${ok}</td><td style="text-align:center">${no}</td><td style="text-align:center">${na}</td></tr>`;
+  });
+
+  let imgHtml='';
+  const src1 = veh.img1 || aiImages.img1;
+  const src2 = veh.img2 || aiImages.img2;
+  if(src1||src2){
+    imgHtml=`<div class="pdf-car-imgs">
+      ${src1?`<img src="${src1}" crossorigin="anonymous">`:''}
+      ${src2?`<img src="${src2}" crossorigin="anonymous">`:''}
+    </div>`;
+  }
+
+  const formatFecha = (iso)=>{
+    if(!iso)return '_________';
+    const [y,m,d]=iso.split('-');
+    return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+  };
+
+  const tpl=document.getElementById('contract-pdf-template');
+  tpl.className='show';
+  tpl.innerHTML=`
+  <!-- PAGE 1: CONTRATO -->
+  <div id="pdf-p1" style="padding:20px;background:#fff;width:794px;min-height:1080px;position:relative;">
+    ${pdfLogoBar()}
+    <div class="pdf-car-imgs" style="margin:12px 0 16px;">
+      ${src1?`<img src="${src1}" style="max-height:140px;max-width:48%;object-fit:contain;border:1px solid #e5e7eb;border-radius:6px;" crossorigin="anonymous">`:''}
+      ${src2?`<img src="${src2}" style="max-height:140px;max-width:48%;object-fit:contain;border:1px solid #e5e7eb;border-radius:6px;" crossorigin="anonymous">`:''}
+    </div>
+    <div style="font-size:10px;color:#6b7280;text-align:center;margin-bottom:12px;">${veh.marca} ${veh.modelo} ${veh.año} · ${veh.color} · Placa ${veh.placa}</div>
+
+    <p class="pdf-section">En la ciudad de Manta, a los <span class="pdf-bold">${fechaLarga}</span>, comparece por una parte el/la señor/a <span class="pdf-bold">${arrD.nombre}</span>, portador/a de la cédula de identidad No. <span class="pdf-bold">${arrD.cedula}</span>, quien actúa en calidad de persona natural bajo el régimen RIMPE – Negocio Popular, con RUC No. <span class="pdf-bold">${arrD.ruc}</span>, a quién en adelante se le denominará <span class="pdf-bold">EL ARRENDADOR</span>; y, por otra parte, el/la SR./SRA. <span class="pdf-bold">${cli.nombres}</span>, mayor de edad, identificado/a con la cédula de ciudadanía No. <span class="pdf-bold">${cli.cedula}</span> con Licencia de Conducción Vigente, a quien en adelante se denominará <span class="pdf-bold">EL ARRENDATARIO</span>. Se ha celebrado el contrato de arrendamiento de Vehículo Automotor, que se rige por la legislación ecuatoriana y que incluye las siguientes cláusulas:</p>
+
+    <p class="pdf-section"><span class="pdf-bold">PRIMERA. DE LAS CARACTERÍSTICAS DEL VEHÍCULO. -</span> El Arrendador entrega al Arrendatario en alquiler un Vehículo Automotor de las características siguientes:</p>
+    <table class="pdf-table" style="width:50%;margin-left:20px;margin-bottom:10px;">
+      <tr><td class="pdf-bold">Placa:</td><td>${veh.placa}</td><td class="pdf-bold">Marca:</td><td>${veh.marca}</td></tr>
+      <tr><td class="pdf-bold">Modelo:</td><td>${veh.modelo}</td><td class="pdf-bold">Año:</td><td>${veh.año}</td></tr>
+      <tr><td class="pdf-bold">Color:</td><td>${veh.color}</td><td class="pdf-bold">Motor:</td><td>${veh.motor||'N/A'}</td></tr>
+    </table>
+
+    <p class="pdf-section"><span class="pdf-bold">SEGUNDA. CONDICIONES DEL VEHÍCULO. -</span> El vehículo dado en alquiler se encuentra en perfecto estado de funcionamiento, externa e internamente; además de una llanta de emergencia y herramientas de desvare como gato, cruceta. Las demás condiciones del vehículo se verifican de acuerdo al protocolo de registro de Checklist Vehicular, Verificación de entrega-recepción, que consta adjunto al presente contrato.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">TERCERA. DEL PRECIO. -</span> El arrendamiento del vehículo automotor descrito en el punto anterior será de <span class="pdf-bold">$${precio} dólares americanos</span>, diarios, mismos que se pagarán por adelantado.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">CUARTA. VIGENCIA. -</span> Este contrato es por un plazo de <span class="pdf-bold">${dias} días</span>, pero podrá ser prorrogado de mutuo acuerdo y con la antelación que el caso amerite, debiendo el arrendatario notificar al arrendador con por lo menos cuatro horas de anticipación a la hora de vencimiento de tiempo por el que fue contratado el servicio. En caso de prórroga, el arrendatario deberá comunicar al arrendador de su deseo de extender el tiempo de arriendo a los contactos determinados y señalados en la cláusula Décima Cuarta. En caso de que el arrendatario no comunicara el retraso por causas de fuerza mayor justificable para la entrega del vehículo al arrendador con por lo menos 30 minutos antes de la hora a vencer y que el arrendador así lo aceptara, el arrendatario pagará el costo de precio al cincuenta por ciento del alquiler.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">QUINTA. DESTINACIÓN Y USO DEL VEHÍCULO. -</span> El Arrendatario destinará el vehículo automotor al transporte de su persona, de tal manera, que el arrendatario no podrá subarrendar, ni permitir que terceros lo utilicen. El Arrendatario no puede violar los límites de carga o pasajeros que establece el fabricante del vehículo automotor, así como respetar los límites de velocidades establecidos por las leyes ecuatorianas vigentes. Por tanto, El Arrendatario no podrá dedicar el vehículo a: uso distinto a los estipulados en este contrato ni brindar transporte de pasajeros de tipo servicio público; al transporte de cargas o bultos pesados, peligrosos o explosivos; a labores peligrosas o ilícitas que contravengan las leyes penales vigentes; a operaciones de remolque de cualquier clase; a participar en carreras automovilísticas, pruebas de velocidad o certámenes de cualquier tipo.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">SEXTA. CONDUCCIÓN. -</span> El vehículo será manejado por el mismo arrendatario o por quien éste delegue, quedando totalmente prohibido conducirlo: en estado de ebriedad o bajo efectos de sustancias estupefacientes; sin licencia válida expedida por las autoridades competentes; excediendo los límites de velocidad; o permitiendo que personas menores de edad lo conduzcan bajo ninguna circunstancia.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">SÉPTIMA. DE LA CUSTODIA Y TENENCIA DEL VEHÍCULO. -</span> El Arrendatario se constituye como depositario y custodio del vehículo automotor, asumiendo todas las responsabilidades civiles y penales que tal condición implica, hasta tanto proceda la debida devolución al Arrendador, conforme al protocolo de Checklist Vehicular adjunto al presente contrato.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">OCTAVA. DEVOLUCIÓN. -</span> Al finalizar el término del contrato, el Arrendatario deberá entregar el vehículo automotor en horarios de oficina de 08h00 a 18h00 de lunes a domingo, en el mismo estado en que fue recibido al momento del arriendo, salvo el desgaste natural del vehículo automotor y en el domicilio del Arrendador.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">NOVENA. RESPONSABILIDADES DEL ARRENDATARIO. -</span> Mientras esté en poder del Arrendatario el vehículo automotor, éste será responsable de: (a) cualquier daño causado al vehículo o con este sobre propiedad de terceros; (b) los daños causados a terceras personas; (c) los daños causados sobre bienes o personas transportadas en el vehículo; (d) todas las infracciones a la Ley Orgánica de Transporte Terrestre, Tránsito y Seguridad Vial, incluyendo multas por foto radar; (e) arreglos mecánicos o de lámina y pintura que deberá informar previamente al Arrendador.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">DÉCIMA. SEGUROS OBLIGATORIOS. -</span> El valor del seguro corresponde su pago al Arrendador, el cual tiene como obligación mantenerlo siempre vigente.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">DÉCIMA PRIMERA. INCUMPLIMIENTO. -</span> El incumplimiento de cualquier obligación o prohibición descritas en este contrato, da derecho al Arrendador a declarar rescindido el presente contrato de arrendamiento.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">DÉCIMA SEGUNDA. SUSCRIPCIÓN DE DOCUMENTO TÍTULO VALOR. -</span> El arrendatario suscribirá a favor del arrendador dos Letras de Cambio / Pagaré a la Orden: la primera por el valor e importe del vehículo, y la segunda por las multas que se generen por contravención de tránsito de foto radar; el Arrendador devolverá las mismas siempre y cuando el vehículo sea devuelto en el mismo estado en que fue entregado, estando al día en los pagos y sin existir deudas civiles, penales o de tránsito.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">DÉCIMA TERCERA. DE LA EXCLUSIÓN DE RESPONSABILIDAD. -</span> El Arrendador no se responsabilizará por la pérdida y/o extravío de cualquier objeto de valor ubicados o dejados en el automóvil arrendado una vez este haya sido entregado.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">DÉCIMA CUARTA. HORARIOS DE ATENCIÓN Y NOTIFICACIONES. -</span> El Arrendador señala que los horarios de atención quedan estipulados de 08h00 a 18h00 de lunes a domingo. Las notificaciones deberán dirigirse al Arrendador en: <span class="pdf-bold">${arrD.direccion}</span>, celular <span class="pdf-bold">${arrD.celular}</span>, y/o correo electrónico <span class="pdf-bold">${arrD.email}</span>. El Arrendatario de la ciudad de ${cli.ciudad}, teléfono: ${cli.telefono}.</p>
+
+    <p class="pdf-section"><span class="pdf-bold">DÉCIMA QUINTA. DE LAS CONTROVERSIAS. -</span> Las partes acuerdan que en caso de conflicto derivado de este contrato, su ejecución y liquidación, se sujetará ante la competencia exclusiva de los Jueces Civiles y Mercantiles en la ciudad de Manta.</p>
+
+    <table class="pdf-sig-table" style="margin-top:35px;">
+      <tr>
+        <td><div class="pdf-sig-line"></div><span class="pdf-bold">${cli.nombres}</span><br>ARRENDATARIO/A<br>C.I. ${cli.cedula}</td>
+        <td><div class="pdf-sig-line"></div><span class="pdf-bold">${arrD.nombre}</span><br>ARRENDADOR<br>C.I. ${arrD.cedula}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- PAGE 2: CHECK-LIST -->
+  <div id="pdf-p2" style="padding:20px;background:#fff;width:794px;min-height:1080px;margin-top:10px;">
+    ${pdfLogoBar('Check-List Vehicular')}
+    <div style="text-align:center;font-size:11px;color:#6b7280;margin-bottom:10px;">Verificación de entrega-recepción</div>
+
+    <table class="pdf-table" style="margin-bottom:10px;">
+      <tr>
+        <td style="width:50%;"><span class="pdf-bold">SALIDA</span><br>Fecha: ${formatFecha(fecha)} &nbsp; Km: ${km} &nbsp; Hora: ${hora}</td>
+        <td style="width:50%;"><span class="pdf-bold">LLEGADA</span><br>Fecha: ${formatFecha(fechaDev)} &nbsp; Km: _______ &nbsp; Hora: ${horaDev}</td>
+      </tr>
+    </table>
+
+    <table class="pdf-table" style="margin-bottom:10px;">
+      <tr>
+        <td style="width:50%;">
+          <div style="font-weight:700;text-align:center;background:#e8e8e8;margin:-4px -6px 6px;padding:4px;">DATOS PERSONALES DEL CLIENTE</div>
+          <b>Cliente:</b> ${cli.nombres}<br>
+          <b>Cédula:</b> ${cli.cedula}<br>
+          <b>Teléfono:</b> ${cli.telefono}<br>
+          <b>Ref. Laboral:</b> ${cli.refLaboral||'_________________________'}<br>
+          <b>Teléfono:</b> ${cli.telLaboral||'_________________________'}<br>
+          <b>Ref. Personal:</b> ${cli.refPersonal||'_________________________'}<br>
+          <b>Teléfono:</b> ${cli.telPersonal||'_________________________'}
+        </td>
+        <td style="width:50%;">
+          <div style="font-weight:700;text-align:center;background:#e8e8e8;margin:-4px -6px 6px;padding:4px;">DATOS DEL VEHÍCULO</div>
+          <b>Modelo:</b> ${veh.modelo}<br>
+          <b>Marca:</b> ${veh.marca}<br>
+          <b>Año:</b> ${veh.año}<br>
+          <b>Color:</b> ${veh.color}<br>
+          <b>Placa:</b> ${veh.placa}<br>
+          <b>Motor:</b> ${veh.motor||'N/A'}<br>
+          <b>Chasis:</b> ${veh.chasis||'N/A'}
+        </td>
+      </tr>
+    </table>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div>
+        <table class="pdf-table">
+          <tr><td class="th" colspan="4">PUNTOS DE VERIFICACIÓN</td></tr>
+          <tr><td class="th">Ítem</td><td class="th" style="width:40px;">OK</td><td class="th" style="width:40px;">NO</td><td class="th" style="width:40px;">N/A</td></tr>
+          ${ckRows}
+        </table>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:11px;text-align:center;background:#e8e8e8;padding:4px;margin-bottom:6px;border:1px solid #000;">INDICAR GOLPES O RAYONES DEL VEHÍCULO</div>
+        ${imgHtml||`<div style="border:1px dashed #d1d5db;height:220px;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:11px;border-radius:4px;">Generando imágenes…</div>`}
+        <div style="font-size:10px;margin-top:4px;"><b>Observaciones:</b> ${golpes}</div>
+        <div style="margin-top:14px;font-weight:700;font-size:11px;text-align:center;background:#e8e8e8;padding:4px;border:1px solid #000;">NIVEL DE COMBUSTIBLE</div>
+        <table style="width:100%;margin-top:6px;font-size:11px;">
+          <tr>
+            <td style="width:50%;text-align:center;padding:4px;border:1px solid #ccc;border-radius:4px;"><b>Salida:</b> ${fuel}</td>
+            <td style="width:50%;text-align:center;padding:4px;border:1px solid #ccc;border-radius:4px;"><b>Llegada:</b> _______</td>
+          </tr>
+        </table>
+        ${obs?`<div style="margin-top:10px;font-size:11px;"><b>Obs. adicionales:</b> ${obs}</div>`:''}
+      </div>
+    </div>
+
+    <p style="font-size:10px;text-align:justify;border:1px solid #ccc;padding:8px;border-radius:4px;margin-bottom:14px;">Declaro haber recibido el vehículo en las condiciones que mediante esta acta de entrega se indica las condiciones físicas y mecánicas del vehículo. Me comprometo a entregarlo en las mismas condiciones en horarios de oficina de 08h00 a 18h00 de lunes a domingo; y, cancelar cualquier daño o multa de tránsito que se dé mientras el vehículo esté en mi poder. Acepto y firmo este documento después de haber leído las condiciones de alquiler. La garantía será devuelta al cliente luego de 3 meses de realizado el alquiler para la respectiva revisión mecánica y de multas de tránsito de foto radar. La Rentadora no se responsabiliza por objetos olvidados en el vehículo una vez que sea devuelto.</p>
+
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <td style="width:50%;text-align:center;padding:8px;border:1px solid #ccc;"><div style="height:50px;"></div><div style="border-top:1px solid #000;width:75%;margin:0 auto 4px;"></div><b>${arrD.nombre}</b><br>ARRENDADOR<br>C.I. ${arrD.cedula}</td>
+        <td style="width:50%;text-align:center;padding:8px;border:1px solid #ccc;"><div style="height:50px;"></div><div style="border-top:1px solid #000;width:75%;margin:0 auto 4px;"></div><b>${cli.nombres}</b><br>ARRENDATARIO/A<br>C.I. ${cli.cedula}</td>
+      </tr>
+      <tr>
+        <td style="text-align:center;background:#f5f5f5;padding:6px;font-weight:700;font-size:11px;border:1px solid #ccc;">Firma a la SALIDA</td>
+        <td style="text-align:center;background:#f5f5f5;padding:6px;font-weight:700;font-size:11px;border:1px solid #ccc;">Firma a la LLEGADA</td>
+      </tr>
+    </table>
+  </div>`;
+
+  // Generate PDF
+  try {
+    await waitForImages(tpl);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+
+    const pages=['pdf-p1','pdf-p2'];
+    for(let i=0;i<pages.length;i++){
+      const el=document.getElementById(pages[i]);
+      const canvas=await html2canvas(el,{scale:1.8,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',logging:false});
+      const imgData=canvas.toDataURL('image/jpeg',0.92);
+      if(i>0)pdf.addPage();
+      const pW=pdf.internal.pageSize.getWidth();
+      const pH=pdf.internal.pageSize.getHeight();
+      const ratio=canvas.width/canvas.height;
+      let w=pW,h=pW/ratio;
+      if(h>pH){h=pH;w=pH*ratio;}
+      const x=(pW-w)/2, y=(pH-h)/2;
+      pdf.addImage(imgData,'JPEG',x,y,w,h);
+    }
+
+    const fname=`Contrato_${cli.nombres.split(' ')[0]}_${veh.placa}_${fecha}.pdf`;
+    pdf.save(fname);
+    hideLoading();
+    toast('PDF descargado correctamente.');
+  } catch(err){
+    console.error(err);
+    hideLoading();
+    toast('Error al generar PDF. Intenta de nuevo.',false);
+  }
+
+  tpl.className='';
+  tpl.innerHTML='';
+  btn.disabled=false;
+  btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Generar Contrato PDF';
+  renderPage();
+};
+
+// ==================== INIT ====================
+renderPage();
+</script>
+</body>
+</html>
