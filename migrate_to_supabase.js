@@ -6,6 +6,7 @@ const path = require('path');
 const dbUrl = process.env.DATABASE_URL;
 if (!dbUrl) {
   console.error('ERROR: No se detectó DATABASE_URL en el archivo .env.');
+  console.log('Por favor, asegúrate de crear el archivo .env con la variable DATABASE_URL.');
   process.exit(1);
 }
 
@@ -16,7 +17,7 @@ const sqDb = new sqlite3.Database(sqDbPath, (err) => {
     console.error('Error al abrir SQLite local:', err.message);
     process.exit(1);
   }
-  console.log('1. Conectado a base de datos SQLite local.');
+  console.log('1. Conectado a la base de datos SQLite local.');
 });
 
 // Connect to Supabase Postgres
@@ -28,7 +29,66 @@ const pgClient = new Client({
 async function runMigration() {
   try {
     await pgClient.connect();
-    console.log('2. Conectado a Supabase (PostgreSQL). Iniciando migración...');
+    console.log('2. Conectado a Supabase (PostgreSQL).');
+    console.log('3. Creando tablas en Supabase de forma automática si no existen...');
+
+    // Auto-create tables in Postgres
+    await pgClient.query(`
+      CREATE TABLE IF NOT EXISTS arrendadores (
+        id TEXT PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        cedula TEXT NOT NULL,
+        ruc TEXT,
+        direccion TEXT,
+        celular TEXT,
+        email TEXT
+      );
+    `);
+
+    await pgClient.query(`
+      CREATE TABLE IF NOT EXISTS vehiculos (
+        id TEXT PRIMARY KEY,
+        placa TEXT NOT NULL UNIQUE,
+        marca TEXT NOT NULL,
+        modelo TEXT NOT NULL,
+        año INTEGER,
+        color TEXT,
+        motor TEXT,
+        chasis TEXT,
+        img1 TEXT,
+        img2 TEXT
+      );
+    `);
+
+    await pgClient.query(`
+      CREATE TABLE IF NOT EXISTS clientes (
+        id TEXT PRIMARY KEY,
+        nombres TEXT NOT NULL,
+        cedula TEXT NOT NULL,
+        telefono TEXT,
+        ciudad TEXT,
+        refLaboral TEXT,
+        telLaboral TEXT,
+        refPersonal TEXT,
+        telPersonal TEXT
+      );
+    `);
+
+    await pgClient.query(`
+      CREATE TABLE IF NOT EXISTS contratos (
+        id TEXT PRIMARY KEY,
+        cliente TEXT NOT NULL,
+        placa TEXT NOT NULL,
+        marca TEXT,
+        modelo TEXT,
+        precio REAL,
+        dias INTEGER,
+        fecha TEXT,
+        dueñoNombre TEXT
+      );
+    `);
+
+    console.log('4. Tablas verificadas/creadas con éxito. Iniciando copia de datos...');
 
     // --- Migrate Arrendadores ---
     const arrendadores = await new Promise((res, rej) => {
@@ -85,7 +145,7 @@ async function runMigration() {
       );
     }
 
-    console.log('🎉 ¡MIGRACIÓN COMPLETADA CON ÉXITO!');
+    console.log('🎉 ¡MIGRACIÓN COMPLETADA CON ÉXITO Y TABLAS CONFIGURADAS!');
   } catch (err) {
     console.error('Error durante la migración:', err.message);
   } finally {
