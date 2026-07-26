@@ -52,14 +52,16 @@ function updateThemeUI(theme) {
   const btn = document.getElementById('theme-toggle-btn');
   const icon = document.getElementById('theme-icon');
   const text = document.getElementById('theme-text');
-  if (!btn || !icon || !text) return;
+  const iconMobile = document.getElementById('theme-icon-mobile');
 
   if (theme === 'light') {
-    icon.setAttribute('data-lucide', 'moon');
-    text.textContent = 'Modo Oscuro';
+    if (icon) icon.setAttribute('data-lucide', 'moon');
+    if (iconMobile) iconMobile.setAttribute('data-lucide', 'moon');
+    if (text) text.textContent = 'Modo Oscuro';
   } else {
-    icon.setAttribute('data-lucide', 'sun');
-    text.textContent = 'Modo Claro';
+    if (icon) icon.setAttribute('data-lucide', 'sun');
+    if (iconMobile) iconMobile.setAttribute('data-lucide', 'sun');
+    if (text) text.textContent = 'Modo Claro';
   }
   if (window.lucide) window.lucide.createIcons();
 }
