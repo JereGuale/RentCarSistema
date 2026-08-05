@@ -149,6 +149,116 @@ app.delete('/api/contratos/:id', (req, res) => {
   });
 });
 
+// ==================== TEMPORARY MIGRATION API ====================
+app.get('/api/migrate', async (req, res) => {
+  if (!process.env.DATABASE_URL) {
+    return res.status(400).json({ error: 'DATABASE_URL no está configurada.' });
+  }
+
+  const { Client } = require('pg');
+  const client = new Client({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+
+  try {
+    await client.connect();
+    
+    // Create tables
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS arrendadores (
+        id TEXT PRIMARY KEY,
+        nombre TEXT NOT NULL,
+        cedula TEXT NOT NULL,
+        ruc TEXT,
+        direccion TEXT,
+        celular TEXT,
+        email TEXT
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS vehiculos (
+        id TEXT PRIMARY KEY,
+        placa TEXT NOT NULL UNIQUE,
+        marca TEXT NOT NULL,
+        modelo TEXT NOT NULL,
+        año INTEGER,
+        color TEXT,
+        motor TEXT,
+        chasis TEXT,
+        img1 TEXT,
+        img2 TEXT
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS clientes (
+        id TEXT PRIMARY KEY,
+        nombres TEXT NOT NULL,
+        cedula TEXT NOT NULL,
+        telefono TEXT,
+        ciudad TEXT,
+        refLaboral TEXT,
+        telLaboral TEXT,
+        refPersonal TEXT,
+        telPersonal TEXT
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS contratos (
+        id TEXT PRIMARY KEY,
+        cliente TEXT NOT NULL,
+        placa TEXT NOT NULL,
+        marca TEXT,
+        modelo TEXT,
+        precio REAL,
+        dias INTEGER,
+        fecha TEXT,
+        dueñoNombre TEXT
+      );
+    `);
+
+    // Insert basic seed data if empty
+    const checkArrendadores = await client.query('SELECT COUNT(*) FROM arrendadores');
+    if (parseInt(checkArrendadores.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO arrendadores (id, nombre, cedula, ruc, direccion, celular, email)
+        VALUES ('arr1', 'GUALE SANTANA BYRON JOSHUE', '135079905-0', '1350799050001', 'Barrio Costa Azul, Manta', '0998799579', 'g.byron@hotmail.com')
+      `);
+    }
+
+    const checkVehiculos = await client.query('SELECT COUNT(*) FROM vehiculos');
+    if (parseInt(checkVehiculos.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO vehiculos (id, placa, marca, modelo, año, color, motor, chasis, img1, img2)
+        VALUES 
+        ('v1', 'GSR6847', 'CHEVROLET', 'SPARK GT', 2016, 'CELESTE', '1.2L DOHC', '', '', ''),
+        ('v2', 'PDR4115', 'DONGFENG', 'RICH 6', 2022, 'ROJO', '', '', '', ''),
+        ('v3', 'MBG1467', 'CHERY', 'TIGGO 2 PRO', 2023, 'AZUL', '', '', '', ''),
+        ('v4', 'MBF6347', 'ISUZU', 'TERRALORD', 2023, 'NEGRA', 'TURBO DIESEL', '', '', '')
+      `);
+    }
+
+    const checkClientes = await client.query('SELECT COUNT(*) FROM clientes');
+    if (parseInt(checkClientes.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO clientes (id, nombres, cedula, telefono, ciudad, refLaboral, telLaboral, refPersonal, telPersonal)
+        VALUES 
+        ('c1', 'RODRÍGUEZ CALLE ERICK ISAAC', '1310768641', '+593 97 886 1195', 'MANTA', '', '', '', ''),
+        ('c2', 'ZAMBRANO GARCES GAILER GILSON', '1726470790', '0968656392', 'MANTA', '', '', '', '')
+      `);
+    }
+
+    await client.end();
+    res.json({ success: true, message: 'Tablas de base de datos creadas y datos iniciales insertados con éxito.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server is running at http://localhost:${PORT}`);
